@@ -1,18 +1,15 @@
 <?php
 
 function curPageURL() {
-    $pageURL = 'http';
-    if ($_SERVER["HTTPS"] == "on") {$pageURL .= "s";}
-    $pageURL .= "://";
-    if ($_SERVER["SERVER_PORT"] != "80") {
-        $pageURL .= $_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
+    if ($_SERVER["SERVER_PORT"] == "443") {
+        $pageURL = "https://".$_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
     } else {
-        $pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
+        $pageURL = "http://".$_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
     }
     return $pageURL;
 }
  
-function write_log($message, $logfile='log.txt') {
+function write_log($logfile='log.txt') {
     if( ($time = $_SERVER['REQUEST_TIME']) == '') {
         $time = time();
     }
@@ -21,7 +18,12 @@ function write_log($message, $logfile='log.txt') {
     }
     $date = date("Y-m-d H:i:s", $time);
     if($fd = @fopen($logfile, "a")) {
-        $result = fputcsv($fd, array($date, $remote_addr, curPageURL(), $message));
+        fputs($fd, "-------------\r\n");
+        $result = fputcsv($fd, array($date, $remote_addr, curPageURL()));
+        fputs($fd, "POST:");
+        fputs($fd, print_r($_POST, true));
+        fputs($fd, "GET:");
+        fputs($fd, print_r($_GET, true));
         fclose($fd);
     if($result > 0)
         return 'done';
@@ -33,6 +35,6 @@ function write_log($message, $logfile='log.txt') {
     }
 }
 
-write_log("-");
+write_log();
 
 ?>
